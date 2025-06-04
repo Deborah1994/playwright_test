@@ -1,12 +1,12 @@
-import {login, product_page} from "../support/locators";
+import {login, product_page, notify} from "../support/locators";
 import * as data from "../support/data.json";
 
-const {test, expect} = require('@playwright/test');
+const {test, expect, page} = require('@playwright/test');
 
 
 test("Login com usuário normal", async ({page}) => {
 
-    await page.goto('https://www.saucedemo.com/');
+    await page.goto('/');
     // para abrir o debug, add o await page.pause()
 
     //add dado no campo de username
@@ -21,4 +21,29 @@ test("Login com usuário normal", async ({page}) => {
     //checar se usuário logou na página através do título do página redirecionada
     await expect(page.locator(product_page.title)).toBeVisible();
 
+})
+
+
+test("Login com usuário inexistente", async({page}) => {
+    await page.goto('/');
+
+    //add dado inexistente no campo de username
+    await page.locator(login.username_field).fill('Nana');
+
+    //add dado no campo de password
+    await page.locator(login.password_field).fill(data.password);
+
+    //clicar no botão de login
+    await page.locator(login.login_button).click();
+
+    //checar se usuário não logou na página através do título da página que seria redirecionada
+    await expect(page.locator(product_page.title)).not.toBeVisible();
+
+    //checar se usuário continua na página
+    await expect(page.url()).toBe('https://www.saucedemo.com/');
+
+    //checar se usuário visualize notificação de erro
+    await expect(page.locator(notify.error)).toBeVisible();
+    await expect(page.locator(notify.error)).toHaveText('Epic sadface: Username and password do not match any user in this service');
+    
 })
